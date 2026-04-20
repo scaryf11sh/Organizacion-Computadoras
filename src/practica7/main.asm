@@ -1,4 +1,5 @@
 %macro FOR 4
+
 .%4_start:
 	cmp %1, %2
 	jge .%4_end
@@ -30,8 +31,6 @@
 	string  resb 32
 
 	section .text
-	global  _atoi
-	global  _itoa
 	global  _start
 
 _start:
@@ -54,14 +53,14 @@ _start:
 	mov  al, 0xa
 	call putchar
 
-	mov  eax, [option]
-	cmp  al, '1'
-	je   .opt_atoi
-	cmp  al, '2'
-	je   .opt_itoa
-	cmp  al, '3'
-	je   .opt_exit
-	jmp  .opt_error
+	mov eax, [option]
+	cmp al, '1'
+	je  .opt_atoi
+	cmp al, '2'
+	je  .opt_itoa
+	cmp al, '3'
+	je  .opt_exit
+	jmp .opt_error
 
 .opt_atoi:
 	mov  edx, msg_input_str
@@ -84,9 +83,8 @@ _start:
 	call _itoa
 	add  esp, 8
 
-	push eax
-	push string
-	call _print
+	mov  edx, string
+	call puts
 	add  esp, 8
 
 	jmp .menu_while_start
@@ -112,10 +110,8 @@ _start:
 	call _itoa
 	add  esp, 8
 
-	push eax
-	push string
-	call _print
-	add  esp, 8
+	mov  edx, string
+	call puts
 
 	jmp .menu_while_start
 
@@ -132,10 +128,11 @@ _start:
 	mov ebx, 0
 	int 0x80
 
-; capturar: edx = buffer destino, ax = max chars (incluye nulo)
+	; capturar: edx = buffer destino, ax = max chars (incluye nulo)
+
 capturar:
-	push ebx
-	push ecx
+	push  ebx
+	push  ecx
 	movzx ecx, ax
 	dec   ecx
 	mov   ebx, edx
@@ -161,9 +158,9 @@ capturar:
 	loop .ciclo
 
 .salir:
-	mov  byte [edx], 0
-	pop  ecx
-	pop  ebx
+	mov byte [edx], 0
+	pop ecx
+	pop ebx
 	ret
 
 borrar:
@@ -177,28 +174,17 @@ borrar:
 	pop  eax
 	ret
 
-_print:
-	push ebp
-	mov  ebp, esp
-	mov  eax, 4
-	mov  ebx, 1
-	mov  ecx, [ebp + 8]
-	mov  edx, [ebp + 12]
-	int  0x80
-	leave
-	ret
-
 _atoi: ; atoi(char *, int)
-	push ebp
-	mov  ebp, esp
-	sub  esp, 8
+push ebp
+mov  ebp, esp
+sub  esp, 8
 
-	mov dword [ebp-4], 0
-	mov dword [ebp-8], 1
+mov dword [ebp-4], 0
+mov dword [ebp-8], 1
 
-	mov esi, [ebp+8]
-	xor ecx, ecx
-	mov edx, [ebp+12]
+mov esi, [ebp+8]
+xor ecx, ecx
+mov edx, [ebp+12]
 
 .space_c_while_start:
 	cmp ecx, [ebp+12]
@@ -267,14 +253,14 @@ _atoi: ; atoi(char *, int)
 	ret
 
 _itoa: ; itoa(int, char *)
-	push ebp
-	mov  ebp, esp
-	sub  esp, 16
+push ebp
+mov  ebp, esp
+sub  esp, 16
 
-	mov dword [ebp - 4], 0
-	mov dword [ebp - 8], 0
-	mov dword [ebp - 12], 0
-	mov dword [ebp - 16], 0
+mov dword [ebp - 4], 0
+mov dword [ebp - 8], 0
+mov dword [ebp - 12], 0
+mov dword [ebp - 16], 0
 
 	mov eax, [ebp + 8]
 	cmp eax, 0
