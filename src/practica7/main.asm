@@ -1,5 +1,4 @@
-%macro FOR 4; i, condicion, paso, label
-
+%macro FOR 4
 .%4_start:
 	cmp %1, %2
 	jge .%4_end
@@ -12,126 +11,70 @@
 .%4_end:
 	%endmacro
 
+	%include "../../lib/pc_io.inc"
+
 	section .data
-	;       ----- Menú -----
-	msg_menu_title      db "Seleccione una opcion:", 0xA
-	len_menu_title      equ $ - msg_menu_title
-
-	msg_menu_opt_atoi   db "1) atoi", 0xA
-	len_menu_opt_atoi   equ $ - msg_menu_opt_atoi
-
-	msg_menu_opt_itoa   db "2) itoa", 0xA
-	len_menu_opt_itoa   equ $ - msg_menu_opt_itoa
-
-	msg_menu_opt_exit   db "3) salir", 0xA
-	len_menu_opt_exit   equ $ - msg_menu_opt_exit
-
-	msg_menu_input      db "--> "
-	len_menu_input      equ $ - msg_menu_input
-
-	msg_menu_input_error db "Opcion no valida, intente de nuevo", 0xA
-	len_menu_input_error equ $ - msg_menu_input_error
-
-	; ----- Mensajes de entrada -----
+	msg_menu_title      db "Seleccione una opcion:", 0xA, 0
+	msg_menu_opt_atoi   db "1) atoi", 0xA, 0
+	msg_menu_opt_itoa   db "2) itoa", 0xA, 0
+	msg_menu_opt_exit   db "3) salir", 0xA, 0
+	msg_menu_input      db "--> ", 0
+	msg_menu_input_error db "Opcion no valida, intente de nuevo", 0xA, 0
 	msg_input_str       db "Ingrese la cadena: ", 0
-	len_input_str       equ $ - msg_input_str - 1
-
 	msg_input_num       db "Ingrese el numero: ", 0
-	len_input_num       equ $ - msg_input_num - 1
-
-	; ----- Mensajes de salida -----
-	msg_res_atoi        db "atoi -> "
-	len_res_atoi      equ $ - msg_res_atoi
+	msg_res_atoi        db "atoi -> ", 0
 	msg_res_itoa        db "itoa -> ", 0
-	len_res_itoa     equ $ - msg_res_itoa
 
 	section .bss
 	option  resd 1
 	string  resb 32
-	strlen  resd 1
-	number  resd 1
 
 	section .text
-	global  _print
-	;global _scan
 	global  _atoi
 	global  _itoa
 	global  _start
 
 _start:
-	mov eax, 0
 
 .menu_while_start:
-	push len_menu_title
-	push msg_menu_title
-	call _print
-	add  esp, 8
+	mov  edx, msg_menu_title
+	call puts
+	mov  edx, msg_menu_opt_atoi
+	call puts
+	mov  edx, msg_menu_opt_itoa
+	call puts
+	mov  edx, msg_menu_opt_exit
+	call puts
+	mov  edx, msg_menu_input
+	call puts
 
-	push len_menu_opt_atoi
-	push msg_menu_opt_atoi
-	call _print
-	add  esp, 8
+	call getch
+	mov  [option], eax
+	call putchar
+	mov  al, 0xa
+	call putchar
 
-	push len_menu_opt_itoa
-	push msg_menu_opt_itoa
-	call _print
-	add  esp, 8
+	mov  eax, [option]
+	cmp  al, '1'
+	je   .opt_atoi
+	cmp  al, '2'
+	je   .opt_itoa
+	cmp  al, '3'
+	je   .opt_exit
+	jmp  .opt_error
 
-	push len_menu_opt_exit
-	push msg_menu_opt_exit
-	call _print
-	add  esp, 8
+.opt_atoi:
+	mov  edx, msg_input_str
+	call puts
 
-	push len_menu_input
-	push msg_menu_input
-	call _print
-	add  esp, 8
+	mov  ax, 32
+	mov  edx, string
+	call capturar
 
-	;scan
-	mov eax, 3
-	mov ebx, 0
-	mov ecx, string
-	mov edx, 32
-	int 0x80
+	mov  edx, msg_res_atoi
+	call puts
 
-	mov [strlen], eax
-
-	push eax
-	push string
-	call _atoi; return en eax
-	add  esp, 8
-
-	cmp eax, 1
-	jne .opt_itoa
-
-	push len_input_str
-	push msg_input_str
-	call _print
-	add  esp, 8
-
-	mov eax, 3
-	mov ebx, 0
-	mov ecx, string
-	mov edx, 32
-	int 0x80
-
-	mov [strlen], eax
-	cmp eax, 0
-	je  .a_error_handling
-	mov byte [string + eax - 1], 32
-
-.a_error_handling:
-	push [strlen]
-	push string
-	call _print
-	add  esp, 8
-
-	push len_res_atoi
-	push msg_res_atoi
-	call _print
-	add  esp, 8
-
-	push [strlen]
+	push dword 32
 	push string
 	call _atoi
 	add  esp, 8
@@ -141,8 +84,7 @@ _start:
 	call _itoa
 	add  esp, 8
 
-	mov  [strlen], eax
-	push [strlen]
+	push eax
 	push string
 	call _print
 	add  esp, 8
@@ -150,49 +92,27 @@ _start:
 	jmp .menu_while_start
 
 .opt_itoa:
-	cmp eax, 2
-	jne .opt_exit
+	mov  edx, msg_input_num
+	call puts
 
-	push len_input_num
-	push msg_input_num
-	call _print
-	add  esp, 8
+	mov  ax, 32
+	mov  edx, string
+	call capturar
 
-	mov eax, 3
-	mov ebx, 0
-	mov ecx, string
-	mov edx, 32
-	int 0x80
+	mov  edx, msg_res_itoa
+	call puts
 
-	mov [strlen], eax
-	cmp eax, 0
-	je  .b_error_handling
-	mov [string + eax - 1], 32
-
-.b_error_handling:
-	push [strlen]
-	push string
-	call _print
-	add  esp, 8
-
-	push len_res_itoa
-	push msg_res_itoa
-	call _print
-	add  esp, 8
-
-	push [strlen]
+	push dword 32
 	push string
 	call _atoi
 	add  esp, 8
 
-	mov  [number], eax
 	push string
-	push [number]
+	push eax
 	call _itoa
 	add  esp, 8
 
-	mov  [strlen], eax
-	push [strlen]
+	push eax
 	push string
 	call _print
 	add  esp, 8
@@ -200,21 +120,62 @@ _start:
 	jmp .menu_while_start
 
 .opt_exit:
-	cmp eax, 3
-	jne .opt_error
 	jmp .menu_while_exit
 
 .opt_error:
-	push len_menu_input_error
-	push msg_menu_input_error
-	call _print
-	add  esp, 8
+	mov  edx, msg_menu_input_error
+	call puts
 	jmp  .menu_while_start
 
 .menu_while_exit:
 	mov eax, 1
 	mov ebx, 0
 	int 0x80
+
+; capturar: edx = buffer destino, ax = max chars (incluye nulo)
+capturar:
+	push ebx
+	push ecx
+	movzx ecx, ax
+	dec   ecx
+	mov   ebx, edx
+
+.ciclo:
+	call getch
+	cmp  al, 127
+	jne  .guardar
+
+	cmp  edx, ebx
+	je   .ciclo
+	dec  edx
+	inc  ecx
+	call borrar
+	jmp  .ciclo
+
+.guardar:
+	call putchar
+	mov  [edx], al
+	cmp  al, 0xa
+	je   .salir
+	inc  edx
+	loop .ciclo
+
+.salir:
+	mov  byte [edx], 0
+	pop  ecx
+	pop  ebx
+	ret
+
+borrar:
+	push eax
+	mov  al, 0x8
+	call putchar
+	mov  al, ' '
+	call putchar
+	mov  al, 0x8
+	call putchar
+	pop  eax
+	ret
 
 _print:
 	push ebp
@@ -227,19 +188,17 @@ _print:
 	leave
 	ret
 
-;_scan
-
 _atoi: ; atoi(char *, int)
-push ebp
-mov  ebp, esp
-sub  esp, 8; nums, result, sign
+	push ebp
+	mov  ebp, esp
+	sub  esp, 8
 
-mov dword [ebp-4], 0; result = 0
-mov dword [ebp-8], 1; sign = 1
+	mov dword [ebp-4], 0
+	mov dword [ebp-8], 1
 
-mov esi, [ebp+8]
-xor ecx, ecx
-mov edx, [ebp+12]
+	mov esi, [ebp+8]
+	xor ecx, ecx
+	mov edx, [ebp+12]
 
 .space_c_while_start:
 	cmp ecx, [ebp+12]
@@ -256,7 +215,6 @@ mov edx, [ebp+12]
 	jmp .space_c_while_start
 
 .break_space_while:
-
 	cmp byte [esi + ecx], '-'
 	je  .has_minus_sign
 	cmp byte [esi + ecx], '+'
@@ -292,10 +250,10 @@ mov edx, [ebp+12]
 	mov   ebx, [ebp-4]
 	imul  ebx, 10
 	add   eax, ebx
-	mov   [ebp -4], eax
+	mov   [ebp-4], eax
 
 .str_for_cmp_end:
-	END_FOR ecx,edx,1,strloop
+	END_FOR ecx, edx, 1, strloop
 
 .break_str_for_cmp:
 	mov  eax, [ebp-4]
@@ -308,15 +266,15 @@ mov edx, [ebp+12]
 	leave
 	ret
 
-_itoa:; itoa (int, char *) el 3 int es la base, pero usamos base 10 por defecto
-push ebp
-mov  ebp, esp
-sub  esp, 16; copy, digits, sign, strlen
+_itoa: ; itoa(int, char *)
+	push ebp
+	mov  ebp, esp
+	sub  esp, 16
 
-mov dword [ebp - 4], 0
-mov dword [ebp - 8], 0
-mov dword [ebp - 12], 0
-mov dword [ebp - 16], 0
+	mov dword [ebp - 4], 0
+	mov dword [ebp - 8], 0
+	mov dword [ebp - 12], 0
+	mov dword [ebp - 16], 0
 
 	mov eax, [ebp + 8]
 	cmp eax, 0
@@ -335,9 +293,9 @@ mov dword [ebp - 16], 0
 
 .not_negative:
 	mov [ebp - 4], eax
-	mov ebx, 10; divisor en 10
-	mov eax, [ebp -4]; eax = num
-	xor edx, edx; edx.eax 0.num
+	mov ebx, 10
+	mov eax, [ebp -4]
+	xor edx, edx
 
 .digits_while_start:
 	cmp eax, 0
@@ -383,7 +341,7 @@ mov dword [ebp - 16], 0
 	mov ebx, 10
 	mov eax, [ebp - 4]
 	xor edx, edx
-	mov ecx, [ebp -16 ]
+	mov ecx, [ebp -16]
 
 .fill_while_start:
 	cmp eax, 0
@@ -398,7 +356,6 @@ mov dword [ebp - 16], 0
 .fill_while_end:
 
 .itoa_leave:
-
 	add dword [ebp-16], 1
 	mov eax, [ebp - 16]
 	leave
