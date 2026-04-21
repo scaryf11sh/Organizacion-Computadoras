@@ -345,6 +345,9 @@ mov dword [ebp - 16], 0
 
 .itoa_leave:
 	add dword [ebp-16], 1
+	mov esi, [ebp+12]
+	mov ebx, [ebp-16]
+	mov byte [esi + ebx], 0
 	mov eax, [ebp - 16]
 	leave
 	ret
