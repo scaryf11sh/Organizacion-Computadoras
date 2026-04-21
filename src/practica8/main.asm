@@ -75,7 +75,7 @@ _start:
 	jmp  .menu_while_start
 
 .opt_print_array:
-	push arr_lenght
+	push [arr_lenght]
 	push arr
 	call _print_array
 	add  esp, 8
@@ -102,30 +102,37 @@ _start:
 _print_array:
 	push ebp
 	mov  ebp, esp
+	sub  esp, 4        ; [ebp-4] = contador (ebx lo destruye int 0x80)
 	push esi
 	push ebx
 
 	mov  al, '['
 	call putchar
 
-	mov esi, [ebp + 8]
-	xor ebx, ebx
+	mov  esi, [ebp + 8]
+	mov  dword [ebp-4], 0
 
 .pa_while_start:
-	cmp ebx, [ebp + 12]
-	jge .pa_while_end
+	mov  ebx, [ebp-4]
+	cmp  ebx, [ebp + 12]
+	jge  .pa_while_end
 
 	push string
 	push dword [esi + ebx*4]
 	call _itoa
 	add  esp, 8
 
+	mov  byte [string + eax - 1], 0
+
 	mov  edx, string
 	call puts
 
-	add ebx, 1
-	cmp ebx, [ebp + 12]
-	jge .pa_while_end
+	mov  ebx, [ebp-4]
+	add  ebx, 1
+	mov  [ebp-4], ebx
+
+	cmp  ebx, [ebp + 12]
+	jge  .pa_while_end
 
 	mov  al, ','
 	call putchar
@@ -133,7 +140,7 @@ _print_array:
 	mov  al, 32
 	call putchar
 
-	jmp .pa_while_start
+	jmp  .pa_while_start
 
 .pa_while_end:
 
@@ -150,8 +157,10 @@ _print_array:
 _fill_array:
 	push ebp
 	mov  ebp, esp
+	push esi
+	push ebx
 
-	xor ecx, ecx
+	xor ebx, ebx
 	mov esi, [ebp + 8]
 
 .fa_while_start:
