@@ -2,3 +2,4 @@
 *.exe
 main
 .DS_Store
+.claude
