@@ -32,6 +32,8 @@
 
 	section .text
 	global  _start
+	global  _atoi
+	global  _itoa
 
 _start:
 
