@@ -102,21 +102,22 @@ _start:
 _print_array:
 	push ebp
 	mov  ebp, esp
-	sub  esp, 4        ; [ebp-4] = contador (ebx lo destruye int 0x80)
+	sub  esp, 4; [ebp-4] = contador
 	push esi
 	push ebx
 
 	mov  al, '['
 	call putchar
 
-	mov  esi, [ebp + 8]
-	mov  dword [ebp-4], 0
+	mov dword [ebp-4], 0
 
 .pa_while_start:
-	mov  ebx, [ebp-4]
-	cmp  ebx, [ebp + 12]
+	mov  eax, [ebp-4]
+	cmp  eax, [ebp + 12]
 	jge  .pa_while_end
 
+	mov  esi, [ebp + 8]        ; recargar: puts puede destruir esi
+	mov  ebx, eax
 	push string
 	push dword [esi + ebx*4]
 	call _itoa
@@ -127,11 +128,11 @@ _print_array:
 	mov  edx, string
 	call puts
 
-	mov  ebx, [ebp-4]
-	add  ebx, 1
-	mov  [ebp-4], ebx
+	mov  eax, [ebp-4]
+	inc  eax
+	mov  [ebp-4], eax
 
-	cmp  ebx, [ebp + 12]
+	cmp  eax, [ebp + 12]
 	jge  .pa_while_end
 
 	mov  al, ','
