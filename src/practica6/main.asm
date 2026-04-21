@@ -1,4 +1,5 @@
 %include "../../lib/pc_io.inc"
+	extern capturar
 
 section .data
 msg_prompt  db 'Ingresa cadena: ', 0
@@ -39,53 +40,6 @@ _start:
 
 	mov eax, 1
 	int 0x80
-
-	; capturar: edx = buffer destino, ax = max chars (incluye nulo)
-
-capturar:
-	push  ebx
-	push  ecx
-	movzx ecx, ax
-	dec   ecx; reservar 1 para nulo
-	mov   ebx, edx; ebx = inicio del buffer
-
-.ciclo:
-	call getch
-	cmp  al, 127
-	jne  .guardar
-
-	;    backspace: solo si hay caracteres capturados
-	cmp  edx, ebx
-	je   .ciclo
-	dec  edx
-	inc  ecx
-	call borrar
-	jmp  .ciclo
-
-.guardar:
-	call putchar
-	mov  [edx], al
-	cmp  al, 0xa
-	je   .salir
-	inc  edx
-	loop .ciclo
-
-.salir:
-	mov byte [edx], 0
-	pop ecx
-	pop ebx
-	ret
-
-borrar:
-	push eax
-	mov  al, 0x8
-	call putchar
-	mov  al, ' '
-	call putchar
-	mov  al, 0x8
-	call putchar
-	pop  eax
-	ret
 
 	; mayusculas: edx = inicio cadena, convierte a-z -> A-Z in-place
 
