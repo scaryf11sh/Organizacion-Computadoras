@@ -116,7 +116,7 @@ mov dword [ebp - 16], 0
 	jne .not_0
 	mov esi, [ebp + 12]
 	mov byte [esi], '0'
-	mov byte [esi + 1], 10
+	mov byte [esi + 1], 0
 	mov [ebp - 16], 1
 	jmp .itoa_leave
 
@@ -161,7 +161,7 @@ mov dword [ebp - 16], 0
 .no_sign:
 	mov esi, [ebp + 12]
 	mov ebx, [ebp - 16]
-	mov byte [esi + ebx], 10
+	mov byte [esi + ebx], 0
 
 	cmp dword [ebp-12], -1
 	jne .no_neg
@@ -191,10 +191,6 @@ mov dword [ebp - 16], 0
 .fill_while_end:
 
 .itoa_leave:
-	add dword [ebp-16], 1
-	mov esi, [ebp+12]
-	mov ebx, [ebp-16]
-	mov byte [esi + ebx], 0
 	mov eax, [ebp - 16]
 	pop esi
 	pop ebx
