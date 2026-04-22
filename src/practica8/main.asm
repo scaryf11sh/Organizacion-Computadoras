@@ -239,16 +239,14 @@ _fill_array:
 _sort_array:
 	push ebp
 	mov  ebp, esp
-	sub  esp, 16
+	sub  esp, 12
 
 	; [ebp-4]  = i, indice del loop externo (posicion donde va el minimo encontrado)
 	; [ebp-8]  = j, indice del loop interno (recorre el subarreglo arr[i+1..n-1])
-	; [ebp-12] = reservado para temp; en la practica el swap usa ecx/edx directamente
-	; [ebp-16] = min_index, indice del elemento mas pequeno encontrado en el loop interno
+	; [ebp-12] = min_index, indice del elemento mas pequeno encontrado en el loop interno
 	mov [ebp - 4], 0; i
 	mov [ebp - 8], 0; j
-	mov [ebp - 12], 0; temp
-	mov [ebp - 16], 0; min_index
+	mov [ebp - 12], 0; min_index
 
 	push esi
 	push ebx
@@ -259,7 +257,7 @@ _sort_array:
 	FOR [ebp - 4], edx, 1, ext_for
 
 	mov eax, [ebp -4]
-	mov [ebp - 16], eax        ; min_index empieza en i; el loop interno lo actualiza si encuentra algo menor
+	mov [ebp - 12], eax        ; min_index empieza en i; el loop interno lo actualiza si encuentra algo menor
 
 	mov ecx, [ebp + 12]        ; ecx = n, limite del loop interno
 	mov ebx, [ebp - 4]
@@ -273,25 +271,25 @@ _sort_array:
 	mov    esi, [ebp + 8]
 	mov    eax, [ebp - 8]
 	mov    eax, [esi + eax*4]  ; arr[j]
-	mov    ebx, [ebp - 16]
+	mov    ebx, [ebp - 12]
 	mov    ebx, [esi + ebx*4]  ; arr[min_index]
 
 	cmp eax, ebx; arr[j] < arr[min_index]
 	jge .next_inn              ; no es menor: min_index no cambia
 
 	mov eax, [ebp-8]
-	mov [ebp - 16], eax        ; encontramos un nuevo minimo: actualizar min_index
+	mov [ebp - 12], eax        ; encontramos un nuevo minimo: actualizar min_index
 
 .next_inn:
 	END_FOR [ebp - 8], ecx, 1, inn_for
 
-	mov eax, [ebp - 16]
+	mov eax, [ebp - 12]
 	cmp [ebp - 4], eax
 	je  .next_ext              ; min_index == i: el minimo ya esta en su lugar, no hace falta intercambiar
 
 	mov esi, [ebp + 8]
 
-	mov ebx, [ebp - 16]
+	mov ebx, [ebp - 12]
 	mov eax, [ebp - 4]
 
 	push edx               ; edx y ecx guardan los limites de los loops; el swap los necesita como temporales
