@@ -20,6 +20,8 @@ _start:
 
 	; capturar ya echo el Enter, cursor ya esta en nueva linea
 
+	; el mismo buffer cadena se reutiliza para ambas conversiones;
+	; minusculas/mayusculas trabajan in-place asi que no se necesita buffer extra
 	mov  edx, msg_minus
 	call puts
 	mov  edx, cadena
@@ -32,7 +34,7 @@ _start:
 	mov  edx, msg_mayus
 	call puts
 	mov  edx, cadena
-	call mayusculas
+	call mayusculas    ; opera sobre la cadena ya convertida a minusculas; garantiza todo mayusculas
 	call puts
 
 	mov  al, 0xa
@@ -44,8 +46,8 @@ _start:
 	; mayusculas: edx = inicio cadena, convierte a-z -> A-Z in-place
 
 mayusculas:
-	push eax
-	push edx
+	push eax   ; convencion de registro: no tenemos frame, guardamos lo que el caller podria necesitar
+	push edx   ; edx es el puntero que avanzamos; al retornar debe estar donde el caller lo dejo
 
 .ciclo:
 	mov al, [edx]
@@ -54,8 +56,8 @@ mayusculas:
 	cmp al, 'a'
 	jb  .siguiente
 	cmp al, 'z'
-	ja  .siguiente
-	sub al, 32
+	ja  .siguiente     ; los rangos 'a'-'z' y 'A'-'Z' son contiguos en ASCII, basta un rango
+	sub al, 32         ; distancia entre mayuscula y minuscula en ASCII es exactamente 32 (0x20)
 	mov [edx], al
 
 .siguiente:
@@ -81,7 +83,7 @@ minusculas:
 	jb  .siguiente
 	cmp al, 'Z'
 	ja  .siguiente
-	add al, 32
+	add al, 32         ; mismo offset que mayusculas pero en sentido contrario
 	mov [edx], al
 
 .siguiente:

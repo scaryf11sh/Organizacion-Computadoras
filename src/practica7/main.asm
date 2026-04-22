@@ -50,11 +50,11 @@ _start:
 	mov  edx, msg_menu_input
 	call puts
 
-	call getch
+	call getch         ; getch no hace eco; lo hacemos manual para controlar el formato
 	mov  [option], eax
-	call putchar
+	call putchar       ; eco del caracter elegido
 	mov  al, 0xa
-	call putchar
+	call putchar       ; newline manual porque getch no lo agrega
 
 	mov eax, [option]
 	cmp al, '1'
@@ -76,11 +76,12 @@ _start:
 	mov  edx, msg_res_atoi
 	call puts
 
-	push dword 32
+	push dword 32      ; limite de lectura igual al tamano del buffer para evitar leer basura fuera
 	push string
 	call _atoi
 	add  esp, 8
 
+	; reutilizamos el mismo buffer: atoi ya termino de leer, itoa puede sobreescribirlo
 	push string
 	push eax
 	call _itoa
@@ -91,7 +92,7 @@ _start:
 	add  esp, 8
 
 	mov  al, 10
-	call putchar
+	call putchar       ; newline de separacion antes de volver al menu
 
 	jmp .menu_while_start
 
@@ -106,6 +107,7 @@ _start:
 	mov  edx, msg_res_itoa
 	call puts
 
+	; opt_itoa tambien pasa por atoi primero para normalizar la entrada del usuario
 	push dword 32
 	push string
 	call _atoi
@@ -136,4 +138,3 @@ _start:
 	mov eax, 1
 	mov ebx, 0
 	int 0x80
-
