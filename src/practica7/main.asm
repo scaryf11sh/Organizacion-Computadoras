@@ -90,6 +90,9 @@ _start:
 	call puts
 	add  esp, 8
 
+	mov  al, 10
+	call putchar
+
 	jmp .menu_while_start
 
 .opt_itoa:
@@ -116,6 +119,9 @@ _start:
 	mov  edx, string
 	call puts
 
+	mov  al, 10
+	call putchar
+
 	jmp .menu_while_start
 
 .opt_exit:
@@ -130,5 +136,4 @@ _start:
 	mov eax, 1
 	mov ebx, 0
 	int 0x80
-
 
