@@ -1,0 +1,1081 @@
+<html>
+<head>
+    <style>
+    .x86-pad {
+        padding: 1rem 0;
+    }
+
+    .x86-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .x86-panel {
+        background: var(--color-background-primary);
+        border: 0.5px solid var(--color-border-tertiary);
+        border-radius: var(--border-radius-lg);
+        padding: 12px;
+    }
+
+    .x86-cap {
+        font-size: 11px;
+        color: var(--color-text-tertiary);
+        margin-bottom: 8px;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+    }
+
+    .x86-code {
+        font-family: var(--font-mono);
+        font-size: 11.5px;
+        line-height: 1.55;
+    }
+
+    .x86-line {
+        padding: 1px 6px;
+        border-radius: 4px;
+        color: var(--color-text-secondary);
+        white-space: pre;
+    }
+
+    .x86-line.x86-active {
+        background: var(--color-background-info);
+        color: var(--color-text-info);
+        font-weight: 500;
+    }
+
+    .x86-line.x86-comment {
+        color: var(--color-text-tertiary);
+        font-style: italic;
+    }
+
+    .x86-regs {
+        display: flex;
+        gap: 6px;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+    }
+
+    .x86-reg {
+        background: var(--color-background-secondary);
+        padding: 3px 7px;
+        border-radius: 4px;
+        color: var(--color-text-secondary);
+    }
+
+    .x86-reg b {
+        color: var(--color-text-primary);
+        font-weight: 500;
+    }
+
+    .x86-row {
+        display: grid;
+        grid-template-columns: 1fr 56px;
+        gap: 4px;
+        align-items: center;
+        margin-bottom: 2px;
+    }
+
+    .x86-slot {
+        display: grid;
+        grid-template-columns: 52px 1fr 70px;
+        gap: 6px;
+        padding: 5px 7px;
+        border-radius: 5px;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        align-items: center;
+        transition: background 0.15s;
+    }
+
+    .x86-addr {
+        color: var(--color-text-tertiary);
+    }
+
+    .x86-val {
+        font-weight: 500;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .x86-slabel {
+        font-size: 10px;
+        opacity: 0.85;
+        text-align: right;
+        font-style: italic;
+    }
+
+    .x86-empty {
+        color: var(--color-text-tertiary);
+    }
+
+    .x86-empty .x86-val {
+        font-weight: 400;
+    }
+
+    .x86-data {
+        background: var(--color-background-secondary);
+        color: var(--color-text-primary);
+    }
+
+    .x86-stale {
+        color: var(--color-text-tertiary);
+        opacity: 0.5;
+    }
+
+    .x86-stale .x86-val {
+        text-decoration: line-through;
+    }
+
+    .x86-param {
+        background: #E6F1FB;
+        color: #0C447C;
+    }
+
+    .x86-ret {
+        background: #FAEEDA;
+        color: #854F0B;
+    }
+
+    .x86-sebp {
+        background: #EEEDFE;
+        color: #3C3489;
+    }
+
+    .x86-local {
+        background: #E1F5EE;
+        color: #085041;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .x86-param {
+            background: rgba(53, 138, 221, 0.18);
+            color: #B5D4F4;
+        }
+
+        .x86-ret {
+            background: rgba(186, 117, 23, 0.2);
+            color: #FAC775;
+        }
+
+        .x86-sebp {
+            background: rgba(127, 119, 221, 0.2);
+            color: #CECBF6;
+        }
+
+        .x86-local {
+            background: rgba(29, 158, 117, 0.18);
+            color: #9FE1CB;
+        }
+    }
+
+    .x86-ptrs {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        align-items: flex-start;
+    }
+
+    .x86-ptr {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        font-weight: 500;
+        padding: 1px 6px;
+        border-radius: 3px;
+    }
+
+    .x86-esp {
+        background: var(--color-background-warning);
+        color: var(--color-text-warning);
+    }
+
+    .x86-ebp {
+        background: var(--color-background-info);
+        color: var(--color-text-info);
+    }
+
+    .x86-controls {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 16px;
+        justify-content: center;
+    }
+
+    .x86-step {
+        text-align: center;
+        margin-top: 14px;
+        padding: 0 12px;
+    }
+
+    .x86-counter {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--color-text-tertiary);
+        margin-bottom: 6px;
+    }
+
+    .x86-explain {
+        font-size: 13px;
+        color: var(--color-text-secondary);
+        line-height: 1.6;
+        min-height: 42px;
+    }
+
+    .x86-legend {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+        font-size: 10px;
+        font-family: var(--font-mono);
+    }
+
+    .x86-leg {
+        padding: 2px 6px;
+        border-radius: 3px;
+    }
+    </style>
+
+</head>
+<body>
+    <h2 class="sr-only">Visualización paso a paso del funcionamiento de la pila en x86: push, pop, llamada a función con parámetros, prólogo, epílogo y reserva de memoria.</h2>
+
+    <div class="x86-pad">
+        <div class="x86-grid">
+            <div class="x86-panel">
+                <div class="x86-cap">CÓDIGO</div>
+                <div class="x86-code" id="x86-code">
+                    <div class="x86-line">push 10</div>
+                    <div class="x86-line">push 20</div>
+                    <div class="x86-line">pop eax</div>
+                    <div class="x86-line">pop ebx</div>
+                    <div class="x86-line x86-comment">; --- llamada a suma(3, 5) ---</div>
+                    <div class="x86-line">push 5         ; param b</div>
+                    <div class="x86-line">push 3         ; param a</div>
+                    <div class="x86-line">call suma</div>
+                    <div class="x86-line x86-comment">; --- prólogo de suma ---</div>
+                    <div class="x86-line">push ebp</div>
+                    <div class="x86-line">mov ebp, esp</div>
+                    <div class="x86-line">sub esp, 8</div>
+                    <div class="x86-line">mov [ebp-4], 100</div>
+                    <div class="x86-line">mov [ebp-8], 200</div>
+                    <div class="x86-line x86-comment">; --- epílogo de suma ---</div>
+                    <div class="x86-line">mov esp, ebp</div>
+                    <div class="x86-line">pop ebp</div>
+                    <div class="x86-line">ret</div>
+                    <div class="x86-line x86-comment">; --- de regreso al caller ---</div>
+                    <div class="x86-line">add esp, 8</div>
+                </div>
+            </div>
+            <div class="x86-panel">
+                <div class="x86-cap">PILA · MEMORIA</div>
+                <div class="x86-regs" id="x86-regs">
+                    <div class="x86-reg">
+                        ESP=
+                        <b>0xFFE0</b>
+                    </div>
+                    <div class="x86-reg">
+                        EBP=
+                        <b>0xFFE0</b>
+                    </div>
+                    <div class="x86-reg">
+                        EAX=
+                        <b>?</b>
+                    </div>
+                    <div class="x86-reg">
+                        EBX=
+                        <b>?</b>
+                    </div>
+                </div>
+                <div id="x86-stack">
+                    <div class="x86-row">
+                        <div class="x86-slot x86-empty">
+                            <span class="x86-addr">0xFFE8</span>
+                            <span class="x86-val">—</span>
+                            <span class="x86-slabel"></span>
+                        </div>
+                        <div class="x86-ptrs"></div>
+                    </div>
+                    <div class="x86-row">
+                        <div class="x86-slot x86-empty">
+                            <span class="x86-addr">0xFFE4</span>
+                            <span class="x86-val">—</span>
+                            <span class="x86-slabel"></span>
+                        </div>
+                        <div class="x86-ptrs"></div>
+                    </div>
+                    <div class="x86-row">
+                        <div class="x86-slot x86-empty">
+                            <span class="x86-addr">0xFFE0</span>
+                            <span class="x86-val">—</span>
+                            <span class="x86-slabel"></span>
+                        </div>
+                        <div class="x86-ptrs">
+                            <span class="x86-ptr x86-esp">ESP</span>
+                            <span class="x86-ptr x86-ebp">EBP</span>
+                        </div>
+                    </div>
+                    <div class="x86-row">
+                        <div class="x86-slot x86-empty">
+                            <span class="x86-addr">0xFFDC</span>
+                            <span class="x86-val">—</span>
+                            <span class="x86-slabel"></span>
+                        </div>
+                        <div class="x86-ptrs"></div>
+                    </div>
+                    <div class="x86-row">
+                        <div class="x86-slot x86-empty">
+                            <span class="x86-addr">0xFFD8</span>
+                            <span class="x86-val">—</span>
+                            <span class="x86-slabel"></span>
+                        </div>
+                        <div class="x86-ptrs"></div>
+                    </div>
+                    <div class="x86-row">
+                        <div class="x86-slot x86-empty">
+                            <span class="x86-addr">0xFFD4</span>
+                            <span class="x86-val">—</span>
+                            <span class="x86-slabel"></span>
+                        </div>
+                        <div class="x86-ptrs"></div>
+                    </div>
+                    <div class="x86-row">
+                        <div class="x86-slot x86-empty">
+                            <span class="x86-addr">0xFFD0</span>
+                            <span class="x86-val">—</span>
+                            <span class="x86-slabel"></span>
+                        </div>
+                        <div class="x86-ptrs"></div>
+                    </div>
+                    <div class="x86-row">
+                        <div class="x86-slot x86-empty">
+                            <span class="x86-addr">0xFFCC</span>
+                            <span class="x86-val">—</span>
+                            <span class="x86-slabel"></span>
+                        </div>
+                        <div class="x86-ptrs"></div>
+                    </div>
+                    <div class="x86-row">
+                        <div class="x86-slot x86-empty">
+                            <span class="x86-addr">0xFFC8</span>
+                            <span class="x86-val">—</span>
+                            <span class="x86-slabel"></span>
+                        </div>
+                        <div class="x86-ptrs"></div>
+                    </div>
+                    <div class="x86-row">
+                        <div class="x86-slot x86-empty">
+                            <span class="x86-addr">0xFFC4</span>
+                            <span class="x86-val">—</span>
+                            <span class="x86-slabel"></span>
+                        </div>
+                        <div class="x86-ptrs"></div>
+                    </div>
+                </div>
+                <div class="x86-legend">
+                    <span class="x86-leg x86-param">param</span>
+                    <span class="x86-leg x86-ret">ret addr</span>
+                    <span class="x86-leg x86-sebp">saved ebp</span>
+                    <span class="x86-leg x86-local">local</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="x86-step">
+            <div class="x86-counter" id="x86-counter">Paso 0 de 16</div>
+            <div class="x86-explain" id="x86-explain">Estado inicial. ESP apunta a la cima de la pila (vacía). La pila crece hacia direcciones más bajas; cada slot mide 4 bytes.</div>
+        </div>
+
+        <div class="x86-controls">
+            <button id="x86-prev" disabled="">← Anterior</button>
+            <button id="x86-reset">Reiniciar</button>
+            <button id="x86-next">Siguiente →</button>
+        </div>
+    </div>
+
+    <script>
+    (function() {
+        const code = [
+        {
+            line: 'push 10',
+            comment: false
+        },
+        {
+            line: 'push 20',
+            comment: false
+        },
+        {
+            line: 'pop eax',
+            comment: false
+        },
+        {
+            line: 'pop ebx',
+            comment: false
+        },
+        {
+            line: '; --- llamada a suma(3, 5) ---',
+            comment: true
+        },
+        {
+            line: 'push 5         ; param b',
+            comment: false
+        },
+        {
+            line: 'push 3         ; param a',
+            comment: false
+        },
+        {
+            line: 'call suma',
+            comment: false
+        },
+        {
+            line: '; --- prólogo de suma ---',
+            comment: true
+        },
+        {
+            line: 'push ebp',
+            comment: false
+        },
+        {
+            line: 'mov ebp, esp',
+            comment: false
+        },
+        {
+            line: 'sub esp, 8',
+            comment: false
+        },
+        {
+            line: 'mov [ebp-4], 100',
+            comment: false
+        },
+        {
+            line: 'mov [ebp-8], 200',
+            comment: false
+        },
+        {
+            line: '; --- epílogo de suma ---',
+            comment: true
+        },
+        {
+            line: 'mov esp, ebp',
+            comment: false
+        },
+        {
+            line: 'pop ebp',
+            comment: false
+        },
+        {
+            line: 'ret',
+            comment: false
+        },
+        {
+            line: '; --- de regreso al caller ---',
+            comment: true
+        },
+        {
+            line: 'add esp, 8',
+            comment: false
+        }
+        ];
+
+        const states = [
+        {
+            esp: 0xFFE0,
+            ebp: 0xFFE0,
+            regs: {
+                eax: '?',
+                ebx: '?'
+            },
+            slots: {},
+            activeLine: -1,
+            explain: 'Estado inicial. ESP apunta a la cima de la pila (vacía). La pila crece hacia direcciones más bajas; cada slot mide 4 bytes.'
+        },
+        {
+            esp: 0xFFDC,
+            ebp: 0xFFE0,
+            regs: {
+                eax: '?',
+                ebx: '?'
+            },
+            slots: {
+                0xFFDC: {
+                    v: '10',
+                    kind: 'data'
+                }
+            },
+            activeLine: 0,
+            explain: 'push 10  →  ESP -= 4, luego escribe 10 en [ESP]. La cima ahora contiene el valor empujado.'
+        },
+        {
+            esp: 0xFFD8,
+            ebp: 0xFFE0,
+            regs: {
+                eax: '?',
+                ebx: '?'
+            },
+            slots: {
+                0xFFDC: {
+                    v: '10',
+                    kind: 'data'
+                },
+                0xFFD8: {
+                    v: '20',
+                    kind: 'data'
+                }
+            },
+            activeLine: 1,
+            explain: 'push 20  →  ESP baja otros 4 bytes y escribe 20 en la nueva cima. El 10 queda debajo.'
+        },
+        {
+            esp: 0xFFDC,
+            ebp: 0xFFE0,
+            regs: {
+                eax: '20',
+                ebx: '?'
+            },
+            slots: {
+                0xFFDC: {
+                    v: '10',
+                    kind: 'data'
+                },
+                0xFFD8: {
+                    v: '20',
+                    kind: 'stale'
+                }
+            },
+            activeLine: 2,
+            explain: 'pop eax  →  EAX = [ESP] = 20, y luego ESP += 4. El 20 sale lógicamente; el byte físico aún está, pero ya no es parte de la pila.'
+        },
+        {
+            esp: 0xFFE0,
+            ebp: 0xFFE0,
+            regs: {
+                eax: '20',
+                ebx: '10'
+            },
+            slots: {
+                0xFFDC: {
+                    v: '10',
+                    kind: 'stale'
+                },
+                0xFFD8: {
+                    v: '20',
+                    kind: 'stale'
+                }
+            },
+            activeLine: 3,
+            explain: 'pop ebx  →  EBX = 10, ESP sube. La pila vuelve a estar vacía.'
+        },
+        {
+            esp: 0xFFDC,
+            ebp: 0xFFE0,
+            regs: {
+                eax: '20',
+                ebx: '10'
+            },
+            slots: {
+                0xFFDC: {
+                    v: '5',
+                    kind: 'param',
+                    label: 'param b'
+                }
+            },
+            activeLine: 5,
+            explain: 'push 5  →  empujamos el segundo parámetro. En la convención cdecl los argumentos se empujan de derecha a izquierda.'
+        },
+        {
+            esp: 0xFFD8,
+            ebp: 0xFFE0,
+            regs: {
+                eax: '20',
+                ebx: '10'
+            },
+            slots: {
+                0xFFDC: {
+                    v: '5',
+                    kind: 'param',
+                    label: 'param b'
+                },
+                0xFFD8: {
+                    v: '3',
+                    kind: 'param',
+                    label: 'param a'
+                }
+            },
+            activeLine: 6,
+            explain: 'push 3  →  empujamos el primer parámetro. Quedan en la pila listos para que la función los lea.'
+        },
+        {
+            esp: 0xFFD4,
+            ebp: 0xFFE0,
+            regs: {
+                eax: '20',
+                ebx: '10'
+            },
+            slots: {
+                0xFFDC: {
+                    v: '5',
+                    kind: 'param',
+                    label: 'param b'
+                },
+                0xFFD8: {
+                    v: '3',
+                    kind: 'param',
+                    label: 'param a'
+                },
+                0xFFD4: {
+                    v: '0x40105A',
+                    kind: 'ret',
+                    label: 'ret addr'
+                }
+            },
+            activeLine: 7,
+            explain: 'call suma  →  empuja la dirección de retorno (la instrucción siguiente al call) y salta a suma. Ya estamos dentro de la función.'
+        },
+        {
+            esp: 0xFFD0,
+            ebp: 0xFFE0,
+            regs: {
+                eax: '20',
+                ebx: '10'
+            },
+            slots: {
+                0xFFDC: {
+                    v: '5',
+                    kind: 'param',
+                    label: 'param b'
+                },
+                0xFFD8: {
+                    v: '3',
+                    kind: 'param',
+                    label: 'param a'
+                },
+                0xFFD4: {
+                    v: '0x40105A',
+                    kind: 'ret',
+                    label: 'ret addr'
+                },
+                0xFFD0: {
+                    v: '0xFFE0',
+                    kind: 'sebp',
+                    label: 'saved ebp'
+                }
+            },
+            activeLine: 9,
+            explain: 'push ebp  →  guardamos el EBP del caller para poder restaurarlo al salir. Es el inicio del prólogo.'
+        },
+        {
+            esp: 0xFFD0,
+            ebp: 0xFFD0,
+            regs: {
+                eax: '20',
+                ebx: '10'
+            },
+            slots: {
+                0xFFDC: {
+                    v: '5',
+                    kind: 'param',
+                    label: 'param b'
+                },
+                0xFFD8: {
+                    v: '3',
+                    kind: 'param',
+                    label: 'param a'
+                },
+                0xFFD4: {
+                    v: '0x40105A',
+                    kind: 'ret',
+                    label: 'ret addr'
+                },
+                0xFFD0: {
+                    v: '0xFFE0',
+                    kind: 'sebp',
+                    label: 'saved ebp'
+                }
+            },
+            activeLine: 10,
+            explain: 'mov ebp, esp  →  EBP queda fijo en la base del frame nuevo. Ahora [ebp+8]=a, [ebp+12]=b. Las locales irán a [ebp-4], [ebp-8]…'
+        },
+        {
+            esp: 0xFFC8,
+            ebp: 0xFFD0,
+            regs: {
+                eax: '20',
+                ebx: '10'
+            },
+            slots: {
+                0xFFDC: {
+                    v: '5',
+                    kind: 'param',
+                    label: 'param b'
+                },
+                0xFFD8: {
+                    v: '3',
+                    kind: 'param',
+                    label: 'param a'
+                },
+                0xFFD4: {
+                    v: '0x40105A',
+                    kind: 'ret',
+                    label: 'ret addr'
+                },
+                0xFFD0: {
+                    v: '0xFFE0',
+                    kind: 'sebp',
+                    label: 'saved ebp'
+                },
+                0xFFCC: {
+                    v: '?',
+                    kind: 'local',
+                    label: '[ebp-4]'
+                },
+                0xFFC8: {
+                    v: '?',
+                    kind: 'local',
+                    label: '[ebp-8]'
+                }
+            },
+            activeLine: 11,
+            explain: 'sub esp, 8  →  reservamos 8 bytes para variables locales. ESP baja, EBP no se mueve: el frame queda anclado.'
+        },
+        {
+            esp: 0xFFC8,
+            ebp: 0xFFD0,
+            regs: {
+                eax: '20',
+                ebx: '10'
+            },
+            slots: {
+                0xFFDC: {
+                    v: '5',
+                    kind: 'param',
+                    label: 'param b'
+                },
+                0xFFD8: {
+                    v: '3',
+                    kind: 'param',
+                    label: 'param a'
+                },
+                0xFFD4: {
+                    v: '0x40105A',
+                    kind: 'ret',
+                    label: 'ret addr'
+                },
+                0xFFD0: {
+                    v: '0xFFE0',
+                    kind: 'sebp',
+                    label: 'saved ebp'
+                },
+                0xFFCC: {
+                    v: '100',
+                    kind: 'local',
+                    label: '[ebp-4]'
+                },
+                0xFFC8: {
+                    v: '?',
+                    kind: 'local',
+                    label: '[ebp-8]'
+                }
+            },
+            activeLine: 12,
+            explain: 'mov [ebp-4], 100  →  primera local escrita. Se accede relativo a EBP, así no importa si ESP cambia más adelante.'
+        },
+        {
+            esp: 0xFFC8,
+            ebp: 0xFFD0,
+            regs: {
+                eax: '20',
+                ebx: '10'
+            },
+            slots: {
+                0xFFDC: {
+                    v: '5',
+                    kind: 'param',
+                    label: 'param b'
+                },
+                0xFFD8: {
+                    v: '3',
+                    kind: 'param',
+                    label: 'param a'
+                },
+                0xFFD4: {
+                    v: '0x40105A',
+                    kind: 'ret',
+                    label: 'ret addr'
+                },
+                0xFFD0: {
+                    v: '0xFFE0',
+                    kind: 'sebp',
+                    label: 'saved ebp'
+                },
+                0xFFCC: {
+                    v: '100',
+                    kind: 'local',
+                    label: '[ebp-4]'
+                },
+                0xFFC8: {
+                    v: '200',
+                    kind: 'local',
+                    label: '[ebp-8]'
+                }
+            },
+            activeLine: 13,
+            explain: 'mov [ebp-8], 200  →  segunda local. El frame completo: 2 params arriba del ret addr, saved ebp, 2 locales abajo.'
+        },
+        {
+            esp: 0xFFD0,
+            ebp: 0xFFD0,
+            regs: {
+                eax: '20',
+                ebx: '10'
+            },
+            slots: {
+                0xFFDC: {
+                    v: '5',
+                    kind: 'param',
+                    label: 'param b'
+                },
+                0xFFD8: {
+                    v: '3',
+                    kind: 'param',
+                    label: 'param a'
+                },
+                0xFFD4: {
+                    v: '0x40105A',
+                    kind: 'ret',
+                    label: 'ret addr'
+                },
+                0xFFD0: {
+                    v: '0xFFE0',
+                    kind: 'sebp',
+                    label: 'saved ebp'
+                },
+                0xFFCC: {
+                    v: '100',
+                    kind: 'stale'
+                },
+                0xFFC8: {
+                    v: '200',
+                    kind: 'stale'
+                }
+            },
+            activeLine: 15,
+            explain: 'mov esp, ebp  →  desreserva todas las locales en una sola instrucción (equivale a "add esp, 8"). Empieza el epílogo.'
+        },
+        {
+            esp: 0xFFD4,
+            ebp: 0xFFE0,
+            regs: {
+                eax: '20',
+                ebx: '10'
+            },
+            slots: {
+                0xFFDC: {
+                    v: '5',
+                    kind: 'param',
+                    label: 'param b'
+                },
+                0xFFD8: {
+                    v: '3',
+                    kind: 'param',
+                    label: 'param a'
+                },
+                0xFFD4: {
+                    v: '0x40105A',
+                    kind: 'ret',
+                    label: 'ret addr'
+                },
+                0xFFD0: {
+                    v: '0xFFE0',
+                    kind: 'stale'
+                },
+                0xFFCC: {
+                    v: '100',
+                    kind: 'stale'
+                },
+                0xFFC8: {
+                    v: '200',
+                    kind: 'stale'
+                }
+            },
+            activeLine: 16,
+            explain: 'pop ebp  →  restaura el EBP del caller (0xFFE0). El frame de suma ya no existe lógicamente.'
+        },
+        {
+            esp: 0xFFD8,
+            ebp: 0xFFE0,
+            regs: {
+                eax: '20',
+                ebx: '10'
+            },
+            slots: {
+                0xFFDC: {
+                    v: '5',
+                    kind: 'param',
+                    label: 'param b'
+                },
+                0xFFD8: {
+                    v: '3',
+                    kind: 'param',
+                    label: 'param a'
+                },
+                0xFFD4: {
+                    v: '0x40105A',
+                    kind: 'stale'
+                },
+                0xFFD0: {
+                    v: '0xFFE0',
+                    kind: 'stale'
+                },
+                0xFFCC: {
+                    v: '100',
+                    kind: 'stale'
+                },
+                0xFFC8: {
+                    v: '200',
+                    kind: 'stale'
+                }
+            },
+            activeLine: 17,
+            explain: 'ret  →  pop de la dirección de retorno hacia EIP. Volvemos al caller justo después del call.'
+        },
+        {
+            esp: 0xFFE0,
+            ebp: 0xFFE0,
+            regs: {
+                eax: '20',
+                ebx: '10'
+            },
+            slots: {
+                0xFFDC: {
+                    v: '5',
+                    kind: 'stale'
+                },
+                0xFFD8: {
+                    v: '3',
+                    kind: 'stale'
+                },
+                0xFFD4: {
+                    v: '0x40105A',
+                    kind: 'stale'
+                },
+                0xFFD0: {
+                    v: '0xFFE0',
+                    kind: 'stale'
+                },
+                0xFFCC: {
+                    v: '100',
+                    kind: 'stale'
+                },
+                0xFFC8: {
+                    v: '200',
+                    kind: 'stale'
+                }
+            },
+            activeLine: 19,
+            explain: 'add esp, 8  →  el caller limpia los 2 parámetros que había empujado (cdecl). La pila regresa al estado previo a la llamada.'
+        }
+        ];
+
+        const addresses = [];
+        for (let a = 0xFFE8; a >= 0xFFC4; a -= 4)
+            addresses.push(a);
+
+        const fmt = (a) => '0x' + a.toString(16).toUpperCase();
+        function esc(s) {
+            return String(s).replace(/[&<>"]/g, c => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;'
+            }[c]));
+        }
+
+        let current = 0;
+
+        function render() {
+            const s = states[current];
+
+            document.getElementById('x86-code').innerHTML = code.map((c, i) => {
+                const cls = ['x86-line'];
+                if (c.comment)
+                    cls.push('x86-comment');
+                if (i === s.activeLine)
+                    cls.push('x86-active');
+                return '<div class="' + cls.join(' ') + '">' + esc(c.line) + '</div>';
+            }).join('');
+
+            document.getElementById('x86-regs').innerHTML =
+            '<div class="x86-reg">ESP=<b>' + fmt(s.esp) + '</b></div>' +
+            '<div class="x86-reg">EBP=<b>' + fmt(s.ebp) + '</b></div>' +
+            '<div class="x86-reg">EAX=<b>' + esc(s.regs.eax) + '</b></div>' +
+            '<div class="x86-reg">EBX=<b>' + esc(s.regs.ebx) + '</b></div>';
+
+            document.getElementById('x86-stack').innerHTML = addresses.map(addr => {
+                const slot = s.slots[addr];
+                let kind = 'empty',
+                    val = '—',
+                    label = '';
+                if (slot) {
+                    kind = slot.kind;
+                    val = slot.v;
+                    label = slot.label || '';
+                }
+                const ptrs = [];
+                if (s.esp === addr)
+                    ptrs.push('<span class="x86-ptr x86-esp">ESP</span>');
+                if (s.ebp === addr)
+                    ptrs.push('<span class="x86-ptr x86-ebp">EBP</span>');
+                return '<div class="x86-row">' +
+                '<div class="x86-slot x86-' + kind + '">' +
+                '<span class="x86-addr">' + fmt(addr) + '</span>' +
+                '<span class="x86-val">' + esc(val) + '</span>' +
+                '<span class="x86-slabel">' + esc(label) + '</span>' +
+                '</div>' +
+                '<div class="x86-ptrs">' + ptrs.join('') + '</div>' +
+                '</div>';
+            }).join('');
+
+            document.getElementById('x86-counter').textContent = 'Paso ' + current + ' de ' + (states.length - 1);
+            document.getElementById('x86-explain').textContent = s.explain;
+            document.getElementById('x86-prev').disabled = current === 0;
+            document.getElementById('x86-next').disabled = current === states.length - 1;
+        }
+
+        document.getElementById('x86-prev').addEventListener('click', () => {
+            if (current > 0) {
+                current--;
+                render();
+            }
+        });
+        document.getElementById('x86-next').addEventListener('click', () => {
+            if (current < states.length - 1) {
+                current++;
+                render();
+            }
+        });
+        document.getElementById('x86-reset').addEventListener('click', () => {
+            current = 0;
+            render();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' && current < states.length - 1) {
+                current++;
+                render();
+            }
+            else if (e.key === 'ArrowLeft' && current > 0) {
+                current--;
+                render();
+            }
+        });
+
+        render();
+    })();
+    </script>
+</body>
+</html>
+
